@@ -5,6 +5,8 @@ import { updateConfig } from "@/utils/config";
 import { TextButton } from "@/components/textButton";
 import { VrmData } from '@/features/vrmStore/vrmData';
 import { Viewer } from '@/features/vrmViewer/viewer';
+import { useMeshVisibility } from "@/features/vrmViewer/meshVisibilityContext";
+import { buildUrl } from "@/utils/buildUrl";
 
 export function CharacterModelPage({
   viewer,
@@ -30,6 +32,7 @@ export function CharacterModelPage({
   handleClickOpenVrmFile: () => void;
 }) {
   const { t } = useTranslation();
+  const { setRegistryFromViewer } = useMeshVisibility();
 
   return (
     <BasicPage
@@ -40,10 +43,12 @@ export function CharacterModelPage({
           { vrmList.map((vrm) =>
             <button
               key={vrm.url}
-              onClick={() => {
-                viewer.loadVrm(vrm.url, (progress: string) => {
+              onClick={async () => {
+                await viewer.loadVrm(vrm.url, (progress: string) => {
                   // TODO handle loading progress
                 });
+                const builtUrl = buildUrl(vrm.url);
+                setRegistryFromViewer(builtUrl);
                 setVrmSaveType(vrm.saveType);
                 updateConfig('vrm_save_type', vrm.saveType);
                 if (vrm.saveType == 'local') {

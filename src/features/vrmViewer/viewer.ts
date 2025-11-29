@@ -1407,4 +1407,14 @@ export class Viewer {
     this.screenshotCallback = callback;
     this.sendScreenshotToCallback = true;
   };
+
+  public setMeshVisibility(meshName: string, visible: boolean): void {
+    if (!this.model) return;
+    this.model.setMeshVisibility(meshName, visible);
+  }
+
+  public traverseScene(callback: (obj: THREE.Object3D) => void): void {
+    if (!this.scene) return;
+    this.scene.traverse(callback);
+  }
 }

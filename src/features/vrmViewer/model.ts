@@ -18,6 +18,7 @@ import { OptimizedGLTFLoader } from '@/utils/gltfOptimizer';
 import { GLTFAnalyzer } from '@/utils/gltfAnalyzer';
 import { TransparencyOptimizer, checkAndOptimizeTransparency } from '@/utils/transparencyOptimizer';
 import { config } from "@/utils/config";
+import { detectMeshes, DetectedMesh } from './meshCategories';
 
 /**
  * 3Dキャラクターを管理するクラス
@@ -419,6 +420,33 @@ export class Model {
       this._lipSync?.playFromArrayBuffer(buffer, () => {
         resolve(true);
       });
+    });
+  }
+
+  public detectRemovableMeshes(): DetectedMesh[] {
+    if (!this.vrm) {
+      return [];
+    }
+
+    const meshNames: string[] = [];
+    this.vrm.scene.traverse((obj: any) => {
+      if (obj.isMesh) {
+        meshNames.push(obj.name);
+      }
+    });
+
+    return detectMeshes(meshNames);
+  }
+
+  public setMeshVisibility(meshName: string, visible: boolean): void {
+    if (!this.vrm) {
+      return;
+    }
+
+    this.vrm.scene.traverse((obj: any) => {
+      if (obj.isMesh && obj.name === meshName) {
+        obj.visible = visible;
+      }
     });
   }
 

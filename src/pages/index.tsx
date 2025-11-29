@@ -28,6 +28,7 @@ import {
   WrenchScrewdriverIcon,
   SignalIcon,
   AcademicCapIcon,
+  XMarkIcon,
 } from "@heroicons/react/24/outline";
 import { IconBrain } from '@tabler/icons-react';
 
@@ -47,11 +48,13 @@ import { DebugPane } from "@/components/debugPane";
 import { Settings } from "@/components/settings";
 import { EmbeddedWebcam } from "@/components/embeddedWebcam";
 import { Moshi } from "@/features/moshi/components/Moshi";
+import { MeshToggleModal } from "@/components/MeshTogglModal";
 
 import { ViewerContext } from "@/features/vrmViewer/viewerContext";
 import { Message, Role } from "@/features/chat/messages";
 import { ChatContext } from "@/features/chat/chatContext";
 import { AlertContext } from "@/features/alert/alertContext";
+import { MeshVisibilityProvider } from "@/features/vrmViewer/meshVisibilityContext";
 
 import { config, updateConfig } from '@/utils/config';
 import { isTauri } from '@/utils/isTauri';
@@ -141,6 +144,7 @@ export default function Home() {
   const [showChatMode, setShowChatMode] = useState(false);
   const [showSubconciousText, setShowSubconciousText] = useState(false);
   const [showMoshi, setShowMoshi] = useState(false);
+  const [showMeshToggle, setShowMeshToggle] = useState(false);
 
   // null indicates havent loaded config yet
   const [muted, setMuted] = useState<boolean|null>(null);
@@ -370,18 +374,22 @@ export default function Home() {
       { config("chatbot_backend") === "moshi" && <Moshi setAssistantText={setAssistantMessage}/>  }
 
       <VrmStoreProvider>
-        <VrmViewer chatMode={showChatMode}/>
-        {showSettings && (
-          <Settings
-            onClickClose={() => setShowSettings(false)}
-          />
-        )}
-      </VrmStoreProvider>
-      
-      <MessageInputContainer isChatProcessing={chatProcessing} />
+        <MeshVisibilityProvider>
+          {showMeshToggle && (
+            <MeshToggleModal onClose={() => setShowMeshToggle(false)} />
+          )}
 
-      {/* main menu */}
-      <div className="absolute z-10 m-2">
+          <VrmViewer chatMode={showChatMode}/>
+          {showSettings && (
+            <Settings
+              onClickClose={() => setShowSettings(false)}
+            />
+          )}
+
+          <MessageInputContainer isChatProcessing={chatProcessing} />
+
+          {/* main menu */}
+          <div className="absolute z-10 m-2">
         <div className="grid grid-flow-col gap-[8px] place-content-end mt-2 bg-slate-800/40 rounded-md backdrop-blur-md shadow-sm">
           <div className='flex flex-col justify-center items-center p-1 space-y-3'>
             <MenuButton
@@ -469,6 +477,13 @@ export default function Home() {
               />
             )}
 
+            <MenuButton
+              large={isVRHeadset}
+              icon={CubeTransparentIcon}
+              onClick={() => setShowMeshToggle(!showMeshToggle)}
+              label="toggle mesh visibility"
+            />
+
             {/* Temp Disable : WebXR */}
             {/*<MenuButton
               large={isVRHeadset}
@@ -535,10 +550,12 @@ export default function Home() {
                 />
               )}
             </div>
-            
+
           </div>
-        </div>    
-      </div>
+        </div>
+          </div>
+        </MeshVisibilityProvider>
+      </VrmStoreProvider>
 
       {showChatLog && <ChatLog messages={chatLog} />}
 

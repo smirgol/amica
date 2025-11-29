@@ -8,12 +8,14 @@ import isTauri from "@/utils/isTauri";
 import { invoke } from "@tauri-apps/api/tauri";
 import { ChatContext } from "@/features/chat/chatContext";
 import clsx from "clsx";
+import { useMeshVisibility } from "@/features/vrmViewer/meshVisibilityContext";
 
 export default function VrmViewer({ chatMode }: { chatMode: boolean }) {
   const { chat: bot } = useContext(ChatContext);
   const { viewer } = useContext(ViewerContext);
   const { getCurrentVrm, vrmList, vrmListAddFile, isLoadingVrmList } =
     useVrmStoreContext();
+  const { setRegistryFromViewer } = useMeshVisibility();
   const [isLoading, setIsLoading] = useState(true);
   const [loadingProgress, setLoadingProgress] = useState("");
   const [loadingError, setLoadingError] = useState(false);
@@ -50,6 +52,11 @@ export default function VrmViewer({ chatMode }: { chatMode: boolean }) {
           .then((loaded) => {
             if (loaded) {
               console.log("vrm loaded");
+              const currentVrm = getCurrentVrm();
+              if (currentVrm) {
+                const builtUrl = buildUrl(currentVrm.url);
+                setRegistryFromViewer(builtUrl);
+              }
               setLoadingError(false);
               setIsLoading(false);
               if (isTauri()) invoke("close_splashscreen");
@@ -94,6 +101,7 @@ export default function VrmViewer({ chatMode }: { chatMode: boolean }) {
         value.hashEquals(getCurrentVrm()?.getHash() || ""),
       ) < 0,
       viewer,
+      setRegistryFromViewer,
     ],
   );
 
